@@ -140,7 +140,6 @@ class EthWallet {
         this._defaultAccountIdx = ethereum.default_account_idx;
         this._accounts = ethereum.accounts.map(construct(EthAccount));
         this._txNotes = ethereum.tx_notes || {};
-        this.activeAccounts.forEach(a => this._socket.subscribeToAccount(a));
       }
     });
   }
@@ -198,7 +197,10 @@ class EthWallet {
   connect (wsUrl) {
     if (this._socket) return;
     this._socket = new EthSocket(wsUrl);
-    this._socket.subscribeToBlocks(this);
+    this._socket.on('open', () => {
+      this._socket.subscribeToBlocks(this);
+      this.activeAccounts.forEach(a => this._socket.subscribeToAccount(a));
+    });
   }
 
   updateTxs () {
